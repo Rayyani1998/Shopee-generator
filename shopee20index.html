@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Gerador Shopee FREE PRO</title>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPBKTH0395"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-ZPBKTH0395');
+</script>
+
+</head>
+
+<body style="font-family: Arial; text-align:center; padding:20px; background:#0f0f0f; color:#fff;">
+
+<h1>🚀 Gerador Shopee FREE PRO</h1>
+
+<input id="link" placeholder="Cole o link da Shopee"
+style="width:90%; padding:12px; border-radius:8px;"><br><br>
+
+<input id="produto" placeholder="Ou digite o nome do produto"
+style="width:90%; padding:12px; border-radius:8px;"><br><br>
+
+<button onclick="gerar()" style="padding:12px; background:red; color:white; border:none; border-radius:8px;">
+GERAR 🔥
+</button>
+
+<button onclick="modoViral()" style="padding:12px; background:orange; color:white; border:none; border-radius:8px;">
+MODO ULTRA VIRAL ⚡
+</button>
+
+<h2 id="titulo"></h2>
+<p id="hashtags"></p>
+
+<button onclick="copiarTitulo()">Copiar Título</button>
+<button onclick="copiarTags()">Copiar Hashtags</button>
+
+<h3>📊 Tendência do Produto</h3>
+<iframe id="trends" width="100%" height="300"></iframe>
+
+<h3>🕒 Histórico</h3>
+<div id="historico"></div>
+
+<script>
+
+function limpar(txt){
+  return txt.replace(/[-_]/g," ").replace(/[^\w\s]/gi,"").trim();
+}
+
+function extrairNome(link){
+  try{
+    let url = decodeURIComponent(link);
+    return limpar(url.split("/").pop());
+  }catch{
+    return "";
+  }
+}
+
+// sugestões do Google
+async function sugestoesGoogle(q){
+  try{
+    let res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${q}`);
+    let data = await res.json();
+    return data[1] || [];
+  }catch{
+    return [];
+  }
+}
+
+async function gerar(){
+  let link = document.getElementById("link").value;
+  let produto = document.getElementById("produto").value;
+
+  if(link && !produto){
+    produto = extrairNome(link);
+  }
+
+  if(!produto){
+    alert("Digite algo!");
+    return;
+  }
+
+  let base = produto.toLowerCase().split(" ")
+  .filter(p => p.length > 3 && !["para","com","sem","de","da","do","e"].includes(p));
+
+  let sugestoes = await sugestoesGoogle(produto);
+
+  let hashtags = [
+    ...base.slice(0,2),
+    ...sugestoes.slice(0,3)
+  ]
+  .map(p => "#" + p.replace(/\s/g,""))
+  .slice(0,5)
+  .join(" ");
+
+  let modelos = [
+    "🚨 " + produto + " BARATO DEMAIS!",
+    "🔥 " + produto + " com desconto HOJE!",
+    "⚠️ Isso tá esgotando rápido!",
+    "💥 Promoção absurda!",
+    "👀 O segredo desse produto..."
+  ];
+
+  let titulo = modelos[Math.floor(Math.random()*modelos.length)];
+
+  document.getElementById("titulo").innerText = titulo;
+  document.getElementById("hashtags").innerText = hashtags;
+
+  atualizarTrends(produto);
+  salvar(produto, titulo, hashtags);
+}
+
+function modoViral(){
+  let produto = document.getElementById("produto").value;
+
+  let titulo = "🚨 ESSE " + produto.toUpperCase() + " TÁ VIRAL NA SHOPEE!";
+  let hashtags = "#viral #shopeebrasil #oferta #promoção #trend";
+
+  document.getElementById("titulo").innerText = titulo;
+  document.getElementById("hashtags").innerText = hashtags;
+}
+
+function copiarTitulo(){
+  navigator.clipboard.writeText(document.getElementById("titulo").innerText);
+  alert("Título copiado!");
+}
+
+function copiarTags(){
+  navigator.clipboard.writeText(document.getElementById("hashtags").innerText);
+  alert("Hashtags copiadas!");
+}
+
+function atualizarTrends(produto){
+  let url = `https://trends.google.com/trends/embed/explore/TIMESERIES?hl=pt&q=${produto}`;
+  document.getElementById("trends").src = url;
+}
+
+function salvar(produto, titulo, hashtags){
+  let lista = JSON.parse(localStorage.getItem("hist") || "[]");
+  lista.unshift({produto, titulo, hashtags});
+  lista = lista.slice(0,5);
+  localStorage.setItem("hist", JSON.stringify(lista));
+  mostrar();
+}
+
+function mostrar(){
+  let lista = JSON.parse(localStorage.getItem("hist") || "[]");
+  document.getElementById("historico").innerHTML =
+    lista.map(i => `<p><b>${i.produto}</b><br>${i.titulo}<br>${i.hashtags}</p>`).join("");
+}
+
+mostrar();
+
+</script>
+
+</body>
+</html>
